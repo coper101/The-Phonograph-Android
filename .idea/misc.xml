@@ -40,14 +40,21 @@
         <entry key="../../../../../../layout/compose-model-1660449791229.xml" value="0.18681318681318682" />
         <entry key="../../../../../../layout/compose-model-1660450313103.xml" value="0.375" />
         <entry key="../../../../../../layout/compose-model-1660450396919.xml" value="0.18681318681318682" />
+        <entry key="../../../../../../layout/compose-model-1660450455385.xml" value="0.5" />
+        <entry key="../../../../../../layout/compose-model-1660450455389.xml" value="0.1582664526484751" />
         <entry key="../../../../../../layout/compose-model-1660450455391.xml" value="0.16121648136036626" />
+        <entry key="../../../../../../layout/compose-model-1660456500759.xml" value="0.335" />
         <entry key="../../../../../../layout/compose-model-1660456966545.xml" value="0.11482254697286012" />
+        <entry key="../../../../../../layout/compose-model-1660458264937.xml" value="0.335" />
+        <entry key="../../../../../../layout/compose-model-1660461219153.xml" value="0.165" />
+        <entry key="../../../../../../layout/compose-model-1660462406688.xml" value="0.1" />
         <entry key="app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_lauchillus.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_minimize.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_pause.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_play.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_profile_image_placeholder.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/intro_background.xml" value="0.1265" />
       </map>
     </option>
   </component>
