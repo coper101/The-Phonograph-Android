@@ -6,8 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowCompat
-import com.darealreally.thephonograph.data.SongRepository
-import com.darealreally.thephonograph.ui.home.Home
 import com.darealreally.thephonograph.ui.theme.ThePhonographTheme
 import com.google.accompanist.insets.ProvideWindowInsets
 

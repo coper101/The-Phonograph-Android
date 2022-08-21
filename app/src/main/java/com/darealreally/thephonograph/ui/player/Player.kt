@@ -87,7 +87,7 @@ fun PlayerContent(
     val bottomInset = with(LocalDensity.current) { windowInsets.systemBars.bottom.toDp() }
 
     val time =
-        if (isSongPlaying) songPlayingTime.toTimeFormat()
+        if (thisSongIsPlaying) songPlayingTime.toTimeFormat()
         else selectedSong.duration.toTimeFormat()
 
     // UI

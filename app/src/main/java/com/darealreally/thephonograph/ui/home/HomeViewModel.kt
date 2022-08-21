@@ -10,6 +10,7 @@ import com.darealreally.thephonograph.data.SongRepository
 import com.darealreally.thephonograph.data.SongsLocalStorage
 import com.darealreally.thephonograph.data.Timer
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -103,7 +104,7 @@ class HomeViewModel(
         if (song == null) {
             selectedSong.value = currentSong
         }
-        
+
         // Set new song to play or pause current song
         songPlaying.value = song
         Log.d("HomeVM", "new songPlaying: ${_state.value.songPlaying}")
@@ -133,9 +134,16 @@ class HomeViewModel(
 
         // start fresh timer
         timerJob = viewModelScope.launch {
-            Timer.timer(from, to)
+            Timer.timer(
+                if (from == to) 0 else from, // start from 0
+                to
+            )
                 .collectLatest { sec ->
                     songPlayingTime.value = sec
+                    // stop playing if it reaches end of song
+                    if (sec == to) {
+                        stopTimer()
+                    }
                 }
         }
     }

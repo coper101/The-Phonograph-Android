@@ -12,6 +12,7 @@ Features:
 Android:
 - UI: Jetpack Compose
 - Android Architecture: View Model, Redux-like State using Mutable Flows
+- Kotlin: Flows, Coroutine
 - Others: Accompanist, GSON
 
 Data: 
