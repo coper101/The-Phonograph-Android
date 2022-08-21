@@ -9,6 +9,7 @@ import androidx.core.view.WindowCompat
 import com.darealreally.thephonograph.data.SongRepository
 import com.darealreally.thephonograph.ui.home.Home
 import com.darealreally.thephonograph.ui.theme.ThePhonographTheme
+import com.google.accompanist.insets.ProvideWindowInsets
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,6 +20,12 @@ class MainActivity : ComponentActivity() {
         window.statusBarColor = Color.Transparent.toArgb()
         window.navigationBarColor = Color.Transparent.toArgb()
 
-        setContent { ThePhonographApp() }
+        setContent {
+            ThePhonographTheme {
+                ProvideWindowInsets {
+                    ThePhonographApp()
+                }
+            }
+        }
     }
 }

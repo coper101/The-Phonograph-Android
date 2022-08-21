@@ -1,7 +1,6 @@
 package com.darealreally.thephonograph.ui.cd
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,9 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,7 +25,7 @@ import com.darealreally.thephonograph.data.TestData
 import com.darealreally.thephonograph.ui.theme.ThePhonographTheme
 
 enum class PlayStatus {
-    Play,
+    Playing,
     Pause
 }
 
@@ -44,13 +41,17 @@ fun TopCDCase(
     // Props
     val roundPer = 5
 
-    // Transition
+    // Animation
     val xOffset = remember { Animatable(28F) }
 
     // Side Effect
     LaunchedEffect(Unit) {
         xOffset.animateTo(
-            targetValue = 105F
+            targetValue = 105F,
+            animationSpec = tween(
+                durationMillis = 1500,
+                easing = FastOutSlowInEasing
+            )
         )
     }
 
@@ -121,9 +122,11 @@ fun CDCase(
     scale: Float = 0.2F,
     imageId: Int? = null,
     time: String,
+    spin: Boolean = false,
     onPlayer: Boolean = false,
     onChangePlayStatus: (PlayStatus) -> Unit = {},
-    onClick: () -> Unit = {}
+    playStatus: PlayStatus,
+    onClick: () -> Unit = {},
 ) {
     // Props
     val roundPer = if (onPlayer) 8 else 5
@@ -154,7 +157,8 @@ fun CDCase(
             // Row 1: CD
             CD(
                 scale = scale,
-                imageId = imageId
+                imageId = imageId,
+                spin = spin
             )
 
             // Row 2: PLAY or PAUSE BUTTON + TIME
@@ -164,7 +168,10 @@ fun CDCase(
             ) {
 
                 if (!onPlayer) {
-                    PlayOrPauseButton(onChangePlayStatus = onChangePlayStatus)
+                    PlayOrPauseButton(
+                        playStatus = playStatus,
+                        onChangePlayStatus = onChangePlayStatus
+                    )
                 }
 
                 Spacer(
@@ -188,16 +195,14 @@ fun CDCase(
 @Composable
 fun PlayOrPauseButton(
     onPlayer: Boolean = false,
+    playStatus: PlayStatus,
     onChangePlayStatus: (PlayStatus) -> Unit
 ) {
-    // State
-    var playStatus by remember { mutableStateOf(PlayStatus.Pause) }
-
     // Props
     val size = if (onPlayer) 34 else 8
     val extraPadding = if (onPlayer) 18 else 0
     val iconId =
-        if (playStatus == PlayStatus.Play) R.drawable.ic_pause
+        if (playStatus == PlayStatus.Playing) R.drawable.ic_pause
         else R.drawable.ic_play
     val onBackground = MaterialTheme.colors.onBackground
     val iconXOffsetDp = if (onPlayer) 3.dp else 0.dp
@@ -209,15 +214,15 @@ fun PlayOrPauseButton(
             .background(onBackground.copy(0.05F))
             .clickable(
                 onClick = {
-                    playStatus = when (playStatus) {
-                        PlayStatus.Play -> {
+                    val newPlayStatus = when (playStatus) {
+                        PlayStatus.Playing -> {
                             PlayStatus.Pause
                         }
                         PlayStatus.Pause -> {
-                            PlayStatus.Play
+                            PlayStatus.Playing
                         }
                     }
-                    onChangePlayStatus(playStatus)
+                    onChangePlayStatus(newPlayStatus)
                 }
             )
             .padding((8 + extraPadding).dp)
@@ -250,7 +255,8 @@ fun CDCasePreview() {
     ThePhonographTheme {
         CDCase(
             modifier = Modifier.padding(10.dp),
-            time = "1:00"
+            time = "1:00",
+            playStatus = PlayStatus.Pause
         )
     }
 }
@@ -266,7 +272,8 @@ fun CDCase2Preview() {
         CDCase(
             modifier = Modifier.padding(10.dp),
             imageId = R.drawable.ineverdie,
-            time = "1:00"
+            time = "1:00",
+            playStatus = PlayStatus.Pause
         )
     }
 }
@@ -283,7 +290,8 @@ fun CDCase3Preview() {
             modifier = Modifier.padding(10.dp),
             imageId = R.drawable.ineverdie,
             time = "1:00",
-            onPlayer = true
+            onPlayer = true,
+            playStatus = PlayStatus.Pause
         )
     }
 }
@@ -313,7 +321,8 @@ fun TopCDCasePreview() {
 fun PlayOrPausePreview() {
     ThePhonographTheme {
         PlayOrPauseButton(
-            onChangePlayStatus = {}
+            onChangePlayStatus = {},
+            playStatus = PlayStatus.Pause
         )
     }
 }
@@ -327,7 +336,8 @@ fun PlayOrPause2Preview() {
     ThePhonographTheme {
         PlayOrPauseButton(
             onChangePlayStatus = {},
-            onPlayer = true
+            onPlayer = true,
+            playStatus = PlayStatus.Pause
         )
     }
 }

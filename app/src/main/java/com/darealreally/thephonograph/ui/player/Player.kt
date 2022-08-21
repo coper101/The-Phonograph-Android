@@ -1,5 +1,6 @@
 package com.darealreally.thephonograph.ui.player
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,30 +34,49 @@ import com.google.accompanist.insets.LocalWindowInsets
 // Stateful
 @Composable
 fun Player(
+    modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModel.provideFactory(context = LocalContext.current)
-    )
+    ),
+    onDismiss: () -> Unit,
+    isAtHome: Boolean
 ) {
+    Log.d("Player", "parent called")
+
     val viewState by viewModel.state.collectAsState()
 
-    if (viewState.selectedSong != null) {
+    if (viewState.selectedSong != null || viewState.isSongPlaying) {
         PlayerContent(
-            selectedSong = viewState.selectedSong!!,
+            modifier = modifier,
+            selectedSong = viewState.selectedSong ?: viewState.songPlaying!!,
             onSelectSong = { viewModel.onSelectSong(it) },
+            songPlaying = viewState.songPlaying,
             isSongPlaying = viewState.isSongPlaying,
-            onChangeSongPlaying = { viewModel.onChangeSongPlaying(it) }
+            songPlayingTime = viewState.songPlayingTime,
+            onChangeSongPlaying = { viewModel.onChangeSongPlaying(it) },
+            onDismiss = onDismiss,
+            isAtHome = isAtHome
         )
     }
 }
 
 @Composable
 fun PlayerContent(
+    modifier: Modifier = Modifier,
     selectedSong: Song,
     onSelectSong: (Song?) -> Unit,
+    songPlaying: Song?,
     isSongPlaying: Boolean,
-    onChangeSongPlaying: (Song?) -> Unit
+    songPlayingTime: Int,
+    onChangeSongPlaying: (Song?) -> Unit,
+    onDismiss: () -> Unit = {},
+    isAtHome: Boolean
 ) {
+    Log.d("Player", "content called")
+
     // Props
+    val thisSongIsPlaying = songPlaying != null && (songPlaying.id == selectedSong.id)
+
     val context = LocalContext.current
     val onBackground = MaterialTheme.colors.onBackground
 
@@ -66,18 +86,26 @@ fun PlayerContent(
 
     val bottomInset = with(LocalDensity.current) { windowInsets.systemBars.bottom.toDp() }
 
+    val time =
+        if (isSongPlaying) songPlayingTime.toTimeFormat()
+        else selectedSong.duration.toTimeFormat()
+
     // UI
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(color = MaterialTheme.colors.background)
     ) {
         // Layer 1: TOP BAR
         TopBar(
             modifier = Modifier.padding(top = topInsetDp),
+            isSongPlaying = isSongPlaying,
             songTitle = selectedSong.title,
             songSinger = selectedSong.singer,
-            dismissPlayer = { onSelectSong(null) }
+            dismissPlayer = {
+                onSelectSong(null)
+                onDismiss()
+            }
         )
 
         // Layer 2: CONTENT
@@ -90,39 +118,45 @@ fun PlayerContent(
 
             // CD
             CDCase(
-                time = selectedSong.duration.toTimeFormat(),
+                time = time,
                 onPlayer = true,
                 scale = 0.35F,
                 imageId = context.resources.getIdentifier(
                     selectedSong.albumArtName.lowercase(),
                     "drawable",
                     context.packageName
-                )
+                ),
+                spin = thisSongIsPlaying && !isAtHome,
+                playStatus = PlayStatus.Playing // ignore for player screen
             )
 
             Spacer(modifier = Modifier.weight(1F))
 
             // LYRICS
             Column(
+                modifier = Modifier.padding(horizontal = 21.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
                     text = selectedSong.lyricsByLine[0],
                     style = MaterialTheme.typography.subtitle1,
-                    color = onBackground.copy(alpha = 0.5F)
+                    color = onBackground.copy(alpha = 0.5F),
+                    textAlign = TextAlign.Center
                 )
 
                 Text(
                     text = selectedSong.lyricsByLine[1],
-                    style = MaterialTheme.typography.subtitle2,
-                    color = onBackground.copy(alpha = 0.9F)
+                    style = MaterialTheme.typography.h6,
+                    color = onBackground.copy(alpha = 0.9F),
+                    textAlign = TextAlign.Center
                 )
 
                 Text(
                     text = selectedSong.lyricsByLine[2],
                     style = MaterialTheme.typography.subtitle1,
-                    color = onBackground.copy(alpha = 0.5F)
+                    color = onBackground.copy(alpha = 0.5F),
+                    textAlign = TextAlign.Center
                 )
 
             } //: Column
@@ -131,13 +165,14 @@ fun PlayerContent(
 
             // PLAY BUTTON
             PlayOrPauseButton(
+                playStatus = if (thisSongIsPlaying) PlayStatus.Playing else PlayStatus.Pause,
                 onChangePlayStatus = {
                      when (it) {
-                         PlayStatus.Play -> onChangeSongPlaying(selectedSong)
+                         PlayStatus.Playing -> onChangeSongPlaying(selectedSong)
                          PlayStatus.Pause -> onChangeSongPlaying(null)
                      }
                 },
-                onPlayer = true
+                onPlayer = true // this will display a bigger play or pause button
             )
 
             Spacer(modifier = Modifier.weight(1F))
@@ -145,7 +180,7 @@ fun PlayerContent(
             // MODEL
             Text(
                 modifier = Modifier.padding(bottom = bottomInset + 10.dp),
-                text = "${if (isSongPlaying) "Playing" else "Play"} on Model 1900",
+                text = "${ if (thisSongIsPlaying) "Playing" else "Play"} on Model 1900",
                 style = MaterialTheme.typography.subtitle1,
                 color = onBackground.copy(alpha = 0.5F)
             )
@@ -159,6 +194,7 @@ fun PlayerContent(
 fun TopBar(
     modifier: Modifier = Modifier,
     songTitle: String,
+    isSongPlaying: Boolean,
     songSinger: String,
     dismissPlayer: () -> Unit = {}
 ) {
@@ -174,7 +210,7 @@ fun TopBar(
                 MaterialTheme.colors.background
             )
             .padding(horizontal = 21.dp)
-            .padding(bottom = 14.dp),
+            .padding(vertical = 14.dp),
         contentAlignment = Alignment.Center
     ) {
 
@@ -186,7 +222,7 @@ fun TopBar(
         ) {
 
             Text(
-                text = "PLAYING",
+                text = if (isSongPlaying) "PLAYING" else "TRACK",
                 style = MaterialTheme.typography.subtitle1,
                 color = onBackground.copy(alpha = 0.5F)
             )
@@ -198,23 +234,26 @@ fun TopBar(
                 maxLines = 2,
                 textAlign = TextAlign.Center
             )
-
         }
 
         // Layer 2: MINIMIZE
-        Image(
-            painter = painterResource(id = R.drawable.ic_minimize),
-            contentDescription = null,
+        Box(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .fillMaxHeight()
-                .width(48.dp)
-                .padding(12.dp)
+                .size(44.dp)
                 .clickable(
                     onClick = dismissPlayer
                 ),
-            colorFilter = ColorFilter.tint(color = onBackground.copy(alpha = 0.3F))
-        )
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                modifier = Modifier
+                    .padding(10.dp),
+                painter = painterResource(id = R.drawable.ic_minimize),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(color = onBackground.copy(alpha = 0.3F))
+            )
+        }
 
     } //: Box
 }
@@ -226,8 +265,11 @@ fun PlayerContentPreview() {
         PlayerContent(
             selectedSong = TestData.song,
             onSelectSong = {},
+            songPlaying = TestData.song,
             isSongPlaying = false,
-            onChangeSongPlaying = {}
+            songPlayingTime = 0,
+            onChangeSongPlaying = {},
+            isAtHome = false
         )
     }
 }
@@ -238,7 +280,8 @@ fun TopBarPreview() {
     ThePhonographTheme {
         TopBar(
             songTitle = TestData.song.title,
-            songSinger = TestData.song.singer
+            songSinger = TestData.song.singer,
+            isSongPlaying = true
         )
     }
 }

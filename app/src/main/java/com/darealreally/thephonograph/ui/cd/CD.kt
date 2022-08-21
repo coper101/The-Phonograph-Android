@@ -1,13 +1,15 @@
 package com.darealreally.thephonograph.ui.cd
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,14 +21,38 @@ import com.darealreally.thephonograph.ui.theme.ThePhonographTheme
 fun CD(
     modifier: Modifier = Modifier,
     scale: Float = 0.5F,
-    imageId: Int? = null
+    imageId: Int? = null,
+    spin: Boolean = false
 ) {
+    // Props
     val image =
         if (imageId == null) null
         else ImageBitmap.imageResource(id = imageId)
 
+    // Animation
+    val degrees = remember { Animatable(0F) }
+
+    LaunchedEffect(spin) {
+        if (!spin) {
+            // back to initial value and stops animation
+            degrees.snapTo(0F)
+        } else {
+            degrees.animateTo(
+                targetValue = 360F,
+                animationSpec =  infiniteRepeatable(
+                    animation = tween(
+                        durationMillis = 5000,
+                        easing = LinearEasing
+                    ),
+                    repeatMode = RepeatMode.Restart
+                )
+            )
+        }
+    }
+
+    // UI
     Box(
-        modifier = modifier,
+        modifier = modifier.rotate(degrees.value),
         contentAlignment = Alignment.Center
     ) {
         // Layer 1:
@@ -74,7 +100,8 @@ fun CDPreview() {
 fun CD2Preview() {
     ThePhonographTheme {
         CD(
-            imageId = R.drawable.ineverdie
+            imageId = R.drawable.ineverdie,
+            spin = true
         )
     }
 }
